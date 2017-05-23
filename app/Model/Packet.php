@@ -51,7 +51,7 @@ class Model_Packet
             foreach ($this->_requests as $command=>$params)
             {
                 $result[$command] = $actions->$command($params);
-                if (property_exists($views, $command))
+                if (method_exists($views, $command))
                     $response[$command] = $views->$command($result[$command]);
                 else {
                     $response[$command] = $result[$command];

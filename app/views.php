@@ -3,7 +3,7 @@ class views
 {
     public function getUserData(Model_CurrentPlayer $player)
     {
-        $fleets = $player->getFleetsData();
+        $fleets = $player->getFleets();
         $fleets_data = array();
         foreach ($fleets as $fleet) /* @var $fleet Model_Fleet */
         {
@@ -11,8 +11,14 @@ class views
                 'id' => $fleet->id,
                 'position' => $fleet->position,
                 'move_mode' => $fleet->move_mode,
-                
+                'capture_mode' => $fleet->capture_mode,
+                'ships' => $fleet->getShips()
             );
+        }
+        $ships_in_port = array();
+        foreach ($player->getShipsInPort() as $ship)
+        {
+            $ships_in_port[] = $ship;
         }
         return array(
             'id'=>$player->id,
@@ -20,7 +26,8 @@ class views
             'coins'=>$player->coins,
             'crew_limit'=>$player->crew_limit,
             'crews'=>$player->crews,
-            'fleets'=>$player->getFleetsData()
+            'fleets'=>$fleets_data,
+            'inport_ships'=>$ships_in_port    
         );
     }
 }

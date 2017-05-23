@@ -5,9 +5,9 @@ class Model_CurrentPlayer extends Model_Player
     public $crew_limit;
     public $crews;
     /** @var Model_Ship|Array */
-    protected $_ships;
+    protected $_ships = array();
     /** @var Model_Fleet|Array */
-    protected $_fleets;
+    protected $_fleets = array();
     protected static $_device_id = null;
 
 
@@ -41,7 +41,7 @@ class Model_CurrentPlayer extends Model_Player
             Model_Packet::setNeedRequest('setUsername');
         }
         parent::__construct($this->id);
-        $ships = dbLink::getDB()->select('select * from ships where player_id = ?d', $this->id);
+        $ships = dbLink::getDB()->select('select * from ships where player_id = ?d and fleet_id = 0', $this->id);
         foreach ($ships as $ship)
         {
             $this->_ships[$ship['id']] = new Model_Ship($ship);
@@ -102,7 +102,12 @@ class Model_CurrentPlayer extends Model_Player
     public function getFleets()
     {
         return $this->_fleets;    
-    }    
+    }
+    
+    public function getShipsInPort()
+    {
+        return $this->_ships;
+    }
 }
 
 
