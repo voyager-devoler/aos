@@ -14,10 +14,10 @@ class views
                 'capture_mode' => $fleet->capture_mode,
             );
         }
-        $ships_in_port = array();
+        $ships = array();
         foreach ($player->getAllShips() as $ship)
         {
-            $ships_in_port[] = $ship;
+            $ships[] = $ship;
         }
         return array(
             'id'=>$player->id,
@@ -28,6 +28,22 @@ class views
             'fleets'=>$fleets_data,
             'ships'=>$ships    
         );
+    }
+    
+    public function getEquipments(array $equipment_data)
+    {
+        foreach ($equipment_data as $id => $equipment)
+        {
+            $effects = explode(',',$equipment['effect']);
+            $formated = array();
+            foreach ($effects as $effect)
+            {
+                list($prop,$val) = explode(':',$effect);
+                $formated[$prop] = $val;
+            }
+            $equipment_data[$id]['effect'] = $formated;
+        }
+        return $equipment_data;
     }
 }
 

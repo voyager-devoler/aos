@@ -10,6 +10,8 @@ class Model_Ship extends Model_Abstract
     public $gunpowder_stock;
     public $prize_ship;
     public $fire_tactic;
+    public $name;
+    protected $_tablename = 'ships';
     
     public function __construct($ship_data)
     {

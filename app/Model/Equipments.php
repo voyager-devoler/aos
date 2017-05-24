@@ -18,24 +18,24 @@ class Model_Equipments
     }
     
     protected function __construct() {
-        $this->_types = dbLink::getDB()->select('select id as ARRAY_KEY, name, cost, effect from equipments'); 
+        $this->_equipments = dbLink::getDB()->select('select id as ARRAY_KEY, name, cost, effect from equipments'); 
     }
     
     public function getName(int $type)
     {
-        return $this->_types[$type]['name'];
+        return $this->_equipments[$type]['name'];
     }
     
     public function getCost(int $type)
     {
-        return $this->_types[$type]['cost'];
+        return $this->_equipments[$type]['cost'];
     }
     
     protected function _getEffectRate(int $type, $need)
     {
         if ($type == 0)
             return 0;
-        $effects = $this->_types[$type]['effect'];
+        $effects = $this->_equipments[$type]['effect'];
         $effects = explode(',',$effect);
         foreach ($effects as $effect)
         {
@@ -64,6 +64,11 @@ class Model_Equipments
     public function getSelectTargetAbility(int $type)
     {
         return $this->_getEffectRate($type, 'select_target');
+    }
+    
+    public function getAllEquipmentsData()
+    {
+        return $this->_equipments;
     }
 }
 

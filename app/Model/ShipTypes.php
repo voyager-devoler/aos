@@ -60,6 +60,11 @@ class Model_ShipTypes
     {
         return $this->_types[$type]['visibility'];
     }
+    
+    public function getAllHullsData()
+    {
+        return $this->_types;
+    }
 }
 
 

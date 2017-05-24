@@ -17,15 +17,7 @@ class actions
     
     public function createFleet(array $new_fleet_data)
     {
-        $ships_data = dbLink::getDB()->select('select * from ships where id in (?a)', $new_fleet_data['ship_ids']);
-        $ships = array();
-        foreach ($ships_data as $ship_data)
-        {
-            $ships[$ship_data['id']] = new Model_Ship($ship_data);
-        }
-        $fleet = new Model_Fleet(array('player_id' => Model_CurrentPlayer::getInstance()->id, 'position' => Model_Settings::get()->portal_in, 'ships' => $ships));
-        $this->createPath(array('fleet_id'=>$fleet, 'path'=>$new_fleet_data['path']));
-        return $fleet->id;
+        return Model_CurrentPlayer::getInstance()->createFleet($new_fleet_data);
     }
     
     public function addShips2Fleet(array $ship_ids)
@@ -55,12 +47,12 @@ class actions
     
     public function getHullTypes()
     {
-        
+        return Model_ShipTypes::getInstance()->getAllHullsData();
     }
     
     public function getEquipments()
     {
-        
+        return Model_Equipments::getInstance()->getAllEquipmentsData();
     }
     
     public function getSettings()

@@ -38,6 +38,7 @@ class Model_CurrentPlayer extends Model_Player
             $this->crew_limit = Model_Settings::get()->start_crew_limit;
             $this->setRowValues(array('name'=>$this->name, 'coins'=>$this->coins, 'crew_limit'=>$this->crew_limit,'device_id'=>self::$_device_id));
             $this->id = $this->insertRow();
+            $first_ship_id = $this->createNewShip(1, '', array(6,6,6,6));
             Model_Packet::setNeedRequest('setUsername');
         }
         parent::__construct($this->id);
@@ -81,7 +82,7 @@ class Model_CurrentPlayer extends Model_Player
             throw new InsufficientResourceException('Wrong cells number for equipments');
         $this->increaseCurrentCrews(Model_ShipTypes::getInstance()->getCrew($type));
         $cost = Model_ShipTypes::getInstance()->getCost($type);
-        foreach (explode(',',$equipments) as $equipment)
+        foreach ($equipments as $equipment)
         {
             $cost+=Model_Equipments::getInstance()->getCost($equipment);
         }
@@ -91,8 +92,21 @@ class Model_CurrentPlayer extends Model_Player
             $names = explode("\n", file_get_contents('../ships.txt'));
             $name = $names[mt_rand(0, count($names)-1)];
         }
-        $ship = new Model_Ship(array('type'=>$type,'player_id'=>$this->id,'hull_type'=>$type, 'hull_strength'=>Model_ShipTypes::getInstance()->getHull($type), 'equipments'=>implode(',',$equipments),'name'=>$name));
+        $ship = new Model_Ship(array('player_id'=>$this->id,'hull_type'=>$type, 'hull_strength'=>Model_ShipTypes::getInstance()->getHull($type), 'equipments'=>implode(',',$equipments),'name'=>$name));
         return $ship->id;
+    }
+    
+    public function createFleet(array $new_fleet_data)
+    {
+        $ships_data = dbLink::getDB()->select('select * from ships where id in (?a)', $new_fleet_data['ship_ids']);
+        $ships = array();
+        foreach ($ships_data as $ship_data)
+        {
+            $ships[$ship_data['id']] = new Model_Ship($ship_data);
+        }
+        $fleet = new Model_Fleet(array('player_id' => $this->id, 'position' => Model_Settings::get()->portal_in, 'ships' => $ships));
+        $fleet->createPath(array('fleet_id'=>$fleet, 'path'=>$new_fleet_data['path']));
+        return $fleet->id;
     }
     
     /**
