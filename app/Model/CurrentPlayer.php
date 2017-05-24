@@ -41,7 +41,7 @@ class Model_CurrentPlayer extends Model_Player
             Model_Packet::setNeedRequest('setUsername');
         }
         parent::__construct($this->id);
-        $ships = dbLink::getDB()->select('select * from ships where player_id = ?d and fleet_id = 0', $this->id);
+        $ships = dbLink::getDB()->select('select * from ships where player_id = ?d', $this->id); // на самом деле нет смысла все корабли создавать 2 раза, но пока пусть будет так
         foreach ($ships as $ship)
         {
             $this->_ships[$ship['id']] = new Model_Ship($ship);
@@ -104,7 +104,7 @@ class Model_CurrentPlayer extends Model_Player
         return $this->_fleets;    
     }
     
-    public function getShipsInPort()
+    public function getAllShips()
     {
         return $this->_ships;
     }

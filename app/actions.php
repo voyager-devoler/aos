@@ -7,7 +7,7 @@ class actions
 {
     public function setUsername($name)
     {
-        return Model_CurrentPlayer::getInstance()->setRowValue('name', $name);
+        return Model_CurrentPlayer::getInstance()->setRowValue('name', $name['name']);
     }
     
     public function createShip(array $ship_info)

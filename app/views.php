@@ -12,11 +12,10 @@ class views
                 'position' => $fleet->position,
                 'move_mode' => $fleet->move_mode,
                 'capture_mode' => $fleet->capture_mode,
-                'ships' => $fleet->getShips()
             );
         }
         $ships_in_port = array();
-        foreach ($player->getShipsInPort() as $ship)
+        foreach ($player->getAllShips() as $ship)
         {
             $ships_in_port[] = $ship;
         }
@@ -27,7 +26,7 @@ class views
             'crew_limit'=>$player->crew_limit,
             'crews'=>$player->crews,
             'fleets'=>$fleets_data,
-            'inport_ships'=>$ships_in_port    
+            'ships'=>$ships    
         );
     }
 }

@@ -2,7 +2,7 @@
 require_once '../../config.php';
 if (isset($_GET['com']) && $_GET['com']=='clear')
 {
-    logDbLink::getDB()->query('truncate table dev_logger');
+    dbLink::getDB()->query('truncate table dev_logger');
     header('Location: /service/logViewer.php');
 }
 ?>
@@ -32,7 +32,7 @@ if (isset($_GET['com']) && $_GET['com']=='clear')
         <a href="logViewer.php?com=clear" class="btn">Clear log</a>
         </div>
 <?php
-logDbLink::getDB();
+dbLink::getDB();
 if (isset($_GET['ip']))
     $ip = $_GET['ip'];
 else
@@ -41,7 +41,7 @@ if (isset($_GET['c']))
     $count = $_GET['c'];
 else
     $count = 200;
-$commands = logDbLink::getDB()->select('SELECT id,time,INET_NTOA(ip) as ip,post,response FROM dev_logger WHERE 1 {AND INET_NTOA(ip)=?} order by id desc limit ?d',$ip, $count);
+$commands = dbLink::getDB()->select('SELECT id,time,INET_NTOA(ip) as ip,post,response FROM dev_logger WHERE 1 {AND INET_NTOA(ip)=?} order by id desc limit ?d',$ip, $count);
 echo '<div id="container">';
 foreach ($commands as $command)
 {
