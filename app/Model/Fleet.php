@@ -8,6 +8,7 @@ class Model_Fleet extends Model_Abstract
     public $position;
     /** @var Model_Ship|Array */
     protected $_ships;
+    protected $_path = [];
     
     public function __construct($fleet_data) {
         if (is_array($fleet_data))
@@ -30,6 +31,7 @@ class Model_Fleet extends Model_Abstract
             {
                 $this->_ships[$ship_data['id']] = new Model_Ship($ship_data);
             }
+            $this->_path = dbLink::getDB()->select('select id,params as position, finish_time as arrived from events where obj_id = ?d and type="fleet_move"');
         }
     }
     
@@ -85,7 +87,11 @@ class Model_Fleet extends Model_Abstract
         foreach ($path as $cell)
         {
             $next_time = strtotime($time." + ".$oneSquareTime." seconds");
-            dbLink::getDB()->query('insert into events (type, player_id, obj_id, start_time, finish_time, params) values ("fleet_move",?d,?,?,?)',  Model_CurrentPlayer::getInstance()->id,$this->id,$time,$next_time,$cell);
+            $this->_path[] = [
+                'id'=>dbLink::getDB()->query('insert into events (type, player_id, obj_id, start_time, finish_time, params) values ("fleet_move",?d,?,?,?)',  Model_CurrentPlayer::getInstance()->id,$this->id,$time,$next_time,$cell),
+                'position'=>$cell,
+                'arrived'=>$next_time
+                    ];
             $time = $next_time;
         }
         return count($path)*$oneSquareTime;
@@ -190,6 +196,11 @@ class Model_Fleet extends Model_Abstract
             if (!$ship->saveState())
                 unset ($this->_ships[$ship->id]);
         }
+    }
+    
+    public function getPath()
+    {
+        return $this->_path;
     }
 }
 

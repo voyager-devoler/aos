@@ -90,7 +90,7 @@ class Model_CurrentPlayer extends Model_Player
         if ($name=='')
         {
             $names = explode("\n", file_get_contents('../ships.txt'));
-            $name = $names[mt_rand(0, count($names)-1)];
+            $name = trim($names[mt_rand(0, count($names)-1)]);
         }
         $ship = new Model_Ship(array('player_id'=>$this->id,'hull_type'=>$type, 'hull_strength'=>Model_ShipTypes::getInstance()->getHull($type), 'equipments'=>implode(',',$equipments),'name'=>$name));
         return $ship->id;

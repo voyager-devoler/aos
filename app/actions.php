@@ -65,6 +65,11 @@ class actions
         return Model_Map::getAllMap();
     }
     
+    public function getResources()
+    {
+        return dbLink::getDB()->select('select * from resources');
+    }
+    
     public function getFleets()
     {
         
