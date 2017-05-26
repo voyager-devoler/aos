@@ -62,6 +62,24 @@ class Model_Packet
             {
                 $response['needRequest'] = self::getNeedRequest();
             }
+            $events = dbLink::getDB()->select('select id, type, obj_id, start_time, finish_time, params from events where player_id=?d and processed=0', Model_CurrentPlayer::getInstance()->id);
+            foreach($events as $id=>$event)
+            {
+                if ($event['type'] == 'fleet_move')
+                {
+                    $events[$id]['position'] = $event['params'];
+                    $events[$id]['fleet_id'] = $event['obj_id'];
+                }
+                if ($event['type'] == 'res_prod')
+                {
+                    $events[$id]['source_id'] = $event['obj_id'];
+                    
+                }
+                unset($events[$id]['obj_id']);
+                unset ($events[$id]['params']);
+            }
+            $response['events'] = $events;
+            $response['messages'] = dbLink::getDB()->select('select id, time, text from messages where player_id = ?d and delivered = 0', Model_CurrentPlayer::getInstance()->id);
         }
         catch (InsufficientResourceException $e)
         {

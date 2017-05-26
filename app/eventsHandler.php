@@ -25,7 +25,7 @@ class eventsHandler
                     Model_BattleLog::getInstance()->initBattle($fleet, $other_fleet, $event['finish_time'], $new_position);
                     $battleResult = $this->makeBattle($fleet, $other_fleet);
                     $player = new Model_Player($fleet->player_id);
-                    $player->createMessage("{$player->name}! Your fleet attaks {$other_player->name}'s fleet in the position ({$new_position})");
+                    $player->createMessage("{$player->name}! Your fleet attacks {$other_player->name}'s fleet in the position ({$new_position})");
                     $other_player = new Model_Player($other_fleet->player_id);
                     $other_player->createMessage("{$other_player->name}! Your fleet was attaked by {$player->name}'s fleet in position ({$new_position})");
                     if ($battleResult == 'ALoose')

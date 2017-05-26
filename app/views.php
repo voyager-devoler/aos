@@ -12,7 +12,7 @@ class views
                 'position' => $fleet->position,
                 'move_mode' => $fleet->move_mode,
                 'capture_mode' => $fleet->capture_mode,
-                'path' => $fleet->getPath()
+//                'path' => $fleet->getPath()
             );
         }
         $ships = array();

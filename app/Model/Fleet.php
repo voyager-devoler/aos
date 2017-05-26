@@ -86,7 +86,7 @@ class Model_Fleet extends Model_Abstract
         $this->deleteCurrentPath();
         foreach ($path as $cell)
         {
-            $next_time = strtotime($time." + ".$oneSquareTime." seconds");
+            $next_time = date('Y-m-d H:i:s',strtotime($time." + ".$oneSquareTime." seconds"));
             $this->_path[] = [
                 'id'=>dbLink::getDB()->query('insert into events (type, player_id, obj_id, start_time, finish_time, params) values ("fleet_move",?d,?,?,?)',  Model_CurrentPlayer::getInstance()->id,$this->id,$time,$next_time,$cell),
                 'position'=>$cell,

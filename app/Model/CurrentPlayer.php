@@ -39,6 +39,7 @@ class Model_CurrentPlayer extends Model_Player
             $this->setRowValues(array('name'=>$this->name, 'coins'=>$this->coins, 'crew_limit'=>$this->crew_limit,'device_id'=>self::$_device_id));
             $this->id = $this->insertRow();
             $first_ship_id = $this->createNewShip(1, '', array(6,6,6,6));
+            $this->_makeNewCoinsProductionEvent();
             Model_Packet::setNeedRequest('setUsername');
         }
         parent::__construct($this->id);
@@ -121,6 +122,24 @@ class Model_CurrentPlayer extends Model_Player
     public function getAllShips()
     {
         return $this->_ships;
+    }
+    
+    public function collectCoins()
+    {
+        $last_collect = dbLink::getDB()->selectRow('select id, start_time from events where player_id=?d and type="res_prod" and processed=0 and obj_id=0', $this->id);
+        if (empty($last_collect))
+            throw new Exception ('The coins production events list is empty...');
+        $coins = (int)((time()-strtotime($lact_collect['start_time']))/60) * Model_Settings::get()->increase_coins_per_minute;
+        if ($coins > Model_Settings::get()->increase_coins_per_minute)
+            $coins = Model_Settings::get()->increase_coins_per_minute;
+        dbLink::getDB()->query('update events set processed=1 where player_id=?d and type="res_prod" and obj_id=0 and processed=0', $this->id);
+        $this->_makeNewCoinsProductionEvent();
+        return $this->increaseCoins($coins);
+    }
+    
+    protected function _makeNewCoinsProductionEvent()
+    {
+        dbLink::getDB()->query('insert into events (player_id, type, obj_id, start_time, finish_time) values (?d, "res_prod", 0, NOW(), ?)', $this->id, date('Y-m-d H:i:s', strtotime("+ ".(Model_Settings::get()->increase_coins_limit/Model_Settings::get()->increase_coins_per_minute)."minutes")));
     }
 }
 

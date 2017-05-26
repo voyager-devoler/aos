@@ -31,12 +31,15 @@ class Model_Ship extends Model_Abstract
             parent::__construct($ship_data);
         }
         $this->equipments = explode(',',$this->equipments);
-        $this->cargo = explode(';',$this->cargo);
         $cargo_data = [];
-        foreach($this->cargo as $cargo)
+        if (!empty($this->cargo))
         {
-            list($cell,$res,$num) = explode(',',$cargo);
-            $cargo_data[] = ['cell'=>$cell,'resource'=>$res,'count'=>$num];
+            $this->cargo = explode(';',$this->cargo);
+            foreach($this->cargo as $cargo)
+            {
+                list($cell,$res,$num) = explode(',',$cargo);
+                $cargo_data[] = ['cell'=>$cell,'resource'=>$res,'count'=>$num];
+            }
         }
         $this->cargo = $cargo_data;
     }

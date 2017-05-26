@@ -40,6 +40,12 @@ class actions
         
     }
     
+    public function getShipName()
+    {
+        $names = explode("\n", file_get_contents('../ships.txt'));
+        return trim($names[mt_rand(0, count($names)-1)]);
+    }
+    
     public function setCaptureMode(array $capture_info) // fleet_id, mode
     {
         
@@ -97,7 +103,7 @@ class actions
     
     public function collectCoins()
     {
-        
+        return Model_CurrentPlayer::getInstance()->collectCoins();
     }
 }
 
