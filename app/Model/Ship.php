@@ -3,6 +3,7 @@
 class Model_Ship extends Model_Abstract
 {
     public $id;
+    public $player_id;
     public $fleet_id;
     public $hull_type;
     public $equipments;
@@ -79,7 +80,7 @@ class Model_Ship extends Model_Abstract
             }
             $firepower += $fire;
         }
-        return array ('damage'=>$firepower, 'crit'=>$critical);
+        return array ($firepower, $critical);
     }
 
 
@@ -109,12 +110,12 @@ class Model_Ship extends Model_Abstract
     
     public function applyDamage($damage, $critical)
     {
+        $crits = array();
         $this->hull_strength -= $damage;
         if ($this->hull_strength < 0)
             $this->hull_strength = 0;
         if ($this->hull_strength>0)
         {
-            $crits = array();
             for ($i=0;$i<$critical;$i++)
             {
                 $ekey = array_rand($this->equipments);
@@ -137,13 +138,19 @@ class Model_Ship extends Model_Abstract
     {
         if ($this->hull_strength == 0)
         {
-            $this->deleteRow();
+            $this->kill();
             return false;
         }
         $this->setRowValue('hull_strength', $this->hull_strength);
         $this->setRowValue('equipments', implode(',',$this->equipments));
         $this->updateRow();
         return true;
+    }
+    
+    public function kill()
+    {
+        $this->deleteRow();
+        Model_CurrentPlayer::getInstance()->increaseCurrentCrews(-Model_ShipTypes::getInstance()->getCrew($this->hull_type));
     }
   
 }

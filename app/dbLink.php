@@ -29,7 +29,6 @@ class dbLink {
                     static::$db->query('SET NAMES "utf8"');
                     //static::$db->query('SET time_zone = "+'.(2+date('I')).':00"');
                     static::$db->query('SET time_zone = "+3:00"');
-                    date_default_timezone_set("Europe/Kiev");
             }
             return static::$db;
     }

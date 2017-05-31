@@ -29,6 +29,8 @@ class Model_BattleLog
     
     public function initBattle(Model_Fleet $attacker_fleet, Model_Fleet $defender_fleet, $time, $place)
     {
+        $attacker_fleet->prepare4Battle();
+        $defender_fleet->prepare4Battle();
         $this->attacker_fleet = clone($attacker_fleet);
         $this->defender_fleet = clone($defender_fleet);
         $this->time = $time;

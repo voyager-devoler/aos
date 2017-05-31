@@ -54,7 +54,10 @@ list ($portal_out_x,$portal_out_y) = Model_Settings::get()->getPortalOutPoint();
         .shift_cell {
             width:9px;
             height:18px;
-            float:left;
+            float:left;    
+        }
+        .fleet {
+            background-image: url(ship.png);
         }
     </style>
   </head>
@@ -71,6 +74,12 @@ $map[$island1_y][$island1_x]['content'] = 'resources';
 $map[$island2_y][$island2_x]['content'] = 'resources';
 $map[$portal_in_y][$portal_in_x]['content'] = 'portal1';
 $map[$portal_out_y][$portal_out_x]['content'] = 'portal2';
+$fleets = dbLink::getDB()->selectCol('select position from fleets');
+foreach ($fleets as $fleet)
+{
+    list($fx,$fy) = explode(',',$fleet);
+    $map[$fy][$fx]['content'].=' fleet';
+}
 foreach ($map as $y=>$map_row)
 {
     echo "<div class='row'>";

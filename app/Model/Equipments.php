@@ -36,7 +36,7 @@ class Model_Equipments
         if ($type == 0)
             return 0;
         $effects = $this->_equipments[$type]['effect'];
-        $effects = explode(',',$effect);
+        $effects = explode(',',$effects);
         foreach ($effects as $effect)
         {
             list($etype,$epower) = explode(':',$effect);

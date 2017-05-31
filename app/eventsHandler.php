@@ -14,19 +14,19 @@ class eventsHandler
                     continue;
                 $fleet = new Model_Fleet($event['obj_id']);
                 $new_position = $event['params'];
-                $other_fleets_id = dbLink::getDB()->selectCol('select id from fleets where position=? order by move_mode,time_for_position', $new_position, $fleet->player_id);
+                $other_fleets_id = dbLink::getDB()->selectCol('select id from fleets where position=? order by move_mode,time_for_position', $new_position);
                 $battleResult = null;
                 foreach ($other_fleets_id as $other_fleet_id)
                 {
                     $other_fleet = new Model_Fleet($other_fleet_id);
-                    if ($other_fleet->player_id == $fleet->player_id || ($fleet->move_mode!='move' && $other_fleet->move_mode!='move'))
+                    if ($other_fleet->player_id == $fleet->player_id || ($fleet->move_mode=='move' && $other_fleet->move_mode=='move'))
                         continue;
                     
                     Model_BattleLog::getInstance()->initBattle($fleet, $other_fleet, $event['finish_time'], $new_position);
                     $battleResult = $this->makeBattle($fleet, $other_fleet);
                     $player = new Model_Player($fleet->player_id);
-                    $player->createMessage("{$player->name}! Your fleet attacks {$other_player->name}'s fleet in the position ({$new_position})");
                     $other_player = new Model_Player($other_fleet->player_id);
+                    $player->createMessage("{$player->name}! Your fleet attacks {$other_player->name}'s fleet in the position ({$new_position})");
                     $other_player->createMessage("{$other_player->name}! Your fleet was attaked by {$player->name}'s fleet in position ({$new_position})");
                     if ($battleResult == 'ALoose')
                     {
@@ -81,6 +81,7 @@ class eventsHandler
             $attacker_fleet->deleteRow();
         if (count($defender_fleet->getAliveShips()) == 0)
             $defender_fleet->deleteRow();
+        Model_BattleLog::getInstance()->save();
         if (count($attacker_fleet->getAliveShips()) == 0)
             return 'ALost';
         if (count($defender_fleet->getAliveShips()) == 0)

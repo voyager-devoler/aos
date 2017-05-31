@@ -69,7 +69,7 @@ class Model_Fleet extends Model_Abstract
     public function createPath(array $path)
     {
         $oneSquareTime = (int)(Model_Settings::get()->base_movement_time/$this->getSpeed());
-        $time = date('Y-m-d H:s:i');
+        $time = date('Y-m-d H:i:s');
         $prev_cell = $this->position;
         foreach ($path as $cell)
         {
@@ -136,7 +136,7 @@ class Model_Fleet extends Model_Abstract
     {
         $maxfirepower = -1;
         $maxhull = 0;
-        $minhull = null;
+        $minhull = 1000000;
         $powerfull_ship = null;
         $strongest_ship = null;
         $weakest_ship = null;
@@ -152,7 +152,7 @@ class Model_Fleet extends Model_Abstract
                 $maxhull = $ship->hull_strength;
                 $strongest_ship = $ship;
             }
-            if (!is_null($minhull) && $minhull > $ship->hull_strength && $ship->hull_strength > 0)
+            if ($minhull > $ship->hull_strength && $ship->hull_strength > 0)
             {
                 $minhull = $ship->hull_strength;
                 $weakest_ship = $ship;
@@ -165,9 +165,9 @@ class Model_Fleet extends Model_Abstract
     public function applyDamage(Model_Volley $volley)
     {
         list ($powerfull_ship, $strongest_ship, $weakest_ship) = $this->_getTargetShips(); 
-        $powerfull_ship->applyDamage($volley->damage4powerful, $volley->crit4powerfull);
-        $strongest_ship->applyDamage($volley->damage4strongest, $volley->crit4strongest);
-        $weakest_ship->applyDamage($volley->damage4weakest, $volley->crit4weakest);
+        $volley->result_data['powerful'][$powerfull_ship->id] = $powerfull_ship->applyDamage($volley->damage4powerful, $volley->crit4powerfull);
+        $volley->result_data['strongest'][$strongest_ship->id] = $strongest_ship->applyDamage($volley->damage4strongest, $volley->crit4strongest);
+        $volley->result_data['weakest'][$strongest_ship->id] = $weakest_ship->applyDamage($volley->damage4weakest, $volley->crit4weakest);
         $all_num = count($this->getAliveShips());
         $critical_ships_id = array();
         for ($i=0; $i<$volley->crit4all; $i++)
@@ -183,6 +183,7 @@ class Model_Fleet extends Model_Abstract
                 $critical = 0;
             $volley->result_data[$ship->id] = $ship->applyDamage((int)$volley->damage4all/$all_num, $critical);
         }
+        return $volley;
     }
     
     public function getShipsDataAsArray()
@@ -206,6 +207,14 @@ class Model_Fleet extends Model_Abstract
     public function getPath()
     {
         return $this->_path;
+    }
+    
+    public function prepare4Battle()
+    {
+        foreach ($this->_ships as $ship)
+        {
+            $ship->prepare4Battle();
+        }
     }
 }
 
