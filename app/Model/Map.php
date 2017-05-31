@@ -4,7 +4,7 @@ class Model_Map
     static public function getCellType($position)
     {
         list($x,$y) = explode(',', $position);
-        return dbLink::getDB()->selectCell('select content form map where x=$d and y=$d',$x,$y);
+        return dbLink::getDB()->selectCell('select content from map where x=?d and y=?d',$x,$y);
     }
     
     static public function getAllMap()

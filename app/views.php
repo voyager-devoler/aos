@@ -46,5 +46,20 @@ class views
         }
         return $equipment_data;
     }
+    
+    public function getFleets(array $fleets)
+    {
+        $resp = [];
+        foreach ($fleets as $fleet) 
+        {
+            $resp[] = [
+                'id'=>$fleet['fleet']->id,
+                'player_id'=>$fleet['fleet']->player_id,
+                'position'=>$fleet['fleet']->position,
+                'player_name'=>$fleet['pname']
+            ];
+        }
+        return $resp;
+    }
 }
 

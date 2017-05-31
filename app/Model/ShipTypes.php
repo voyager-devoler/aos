@@ -18,7 +18,7 @@ class Model_ShipTypes
     }
     
     protected function __construct() {
-        $this->_types = dbLink::getDB()->select('select id as ARRAY_KEY, name, hull, cost, crew, cells, speed, low_sinking, visibility from ship_types'); 
+        $this->_types = dbLink::getDB()->select('select id as ARRAY_KEY, name, hull, cost, crew, cells, speed, low_sinking, visibility, can_use_gun24, can_use_big_gunpowder from ship_types'); 
     }
     
     public function getHull(int $type)

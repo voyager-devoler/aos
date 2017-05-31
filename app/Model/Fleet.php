@@ -9,17 +9,19 @@ class Model_Fleet extends Model_Abstract
     /** @var Model_Ship|Array */
     protected $_ships;
     protected $_path = [];
+    protected $_tablename = 'fleets';
     
     public function __construct($fleet_data) {
         if (is_array($fleet_data))
         {
             $this->_ships = $fleet_data['ships'];
+            $this->position = $fleet_data['position'];
             unset ($fleet_data['ships']);
             $this->_dbRawRowValues = $fleet_data;
-            $fleet_id = $this->insertRow();
+            $this->id = $this->insertRow();
             foreach ($this->_ships as $ship) /* @var $ship Model_Ship */
             {
-                $ship->setRowValue('fleet_id', $fleet_id);
+                $ship->setRowValue('fleet_id', $this->id);
                 $ship->updateRow();
             }
         }
@@ -31,7 +33,10 @@ class Model_Fleet extends Model_Abstract
             {
                 $this->_ships[$ship_data['id']] = new Model_Ship($ship_data);
             }
-            $this->_path = dbLink::getDB()->select('select id,params as position, finish_time as arrived from events where obj_id = ?d and type="fleet_move"');
+            //if ($this->player_id == Model_CurrentPlayer::getInstance()->id)
+            {
+                $this->_path = dbLink::getDB()->select('select id,params as position, finish_time as arrived from events where obj_id = ?d and type="fleet_move"',$this->id);
+            }
         }
     }
     
@@ -70,7 +75,7 @@ class Model_Fleet extends Model_Abstract
         {
             if (!Model_Settings::get()->isConnected($prev_cell, $cell))
             {
-                throw new ClientNotFatalException('Wrong path');
+                throw new ClientNotFatalException('Wrong path: '.$prev_cell.'->'.$cell);
             }
             $cellType = Model_Map::getCellType($cell);
             if ($cellType == 'land')
@@ -88,7 +93,7 @@ class Model_Fleet extends Model_Abstract
         {
             $next_time = date('Y-m-d H:i:s',strtotime($time." + ".$oneSquareTime." seconds"));
             $this->_path[] = [
-                'id'=>dbLink::getDB()->query('insert into events (type, player_id, obj_id, start_time, finish_time, params) values ("fleet_move",?d,?,?,?)',  Model_CurrentPlayer::getInstance()->id,$this->id,$time,$next_time,$cell),
+                'id'=>dbLink::getDB()->query('insert into events (type, player_id, obj_id, start_time, finish_time, params) values ("fleet_move",?d,?,?,?,?)',  Model_CurrentPlayer::getInstance()->id,$this->id,$time,$next_time,$cell),
                 'position'=>$cell,
                 'arrived'=>$next_time
                     ];

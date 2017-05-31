@@ -52,10 +52,11 @@ class Model_Packet
             {
                 $result[$command] = $actions->$command($params);
                 if (method_exists($views, $command))
-                    $response[$command] = $views->$command($result[$command]);
+                    $response[$command]['response'] = $views->$command($result[$command]);
                 else {
-                    $response[$command] = $result[$command];
+                    $response[$command]['response'] = $result[$command];
                 }
+                $response[$command]['status'] = 'ok';
             }
             Model_CurrentPlayer::getInstance()->save();
             if (!is_null(self::getNeedRequest()))
@@ -83,7 +84,8 @@ class Model_Packet
         }
         catch (InsufficientResourceException $e)
         {
-            $response[$command] = $e->getMessage();
+            $response[$command]['response'] = $e->getMessage();
+            $response[$command]['status'] = 'error';
         }
         return $response;
     }

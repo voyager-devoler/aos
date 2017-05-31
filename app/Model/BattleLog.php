@@ -43,7 +43,13 @@ class Model_BattleLog
     public function save()
     {
         $sides = json_encode(array('a'=>$this->attacker_fleet->player_id, 'd'=>$this->defender_fleet->player_id));
-        
+        return dbLink::getDB()->query('insert into battles (sides,time,position,fleets,volleys,result) values (?,?,?,?,?,?)',
+                $sides,
+                $this->time,
+                $this->place,
+                json_encode(['a'=>$this->attacker_fleet,'d'=>$this->defender_fleet]),
+                json_encode($this->volleys),
+                '');
     }
 }
 

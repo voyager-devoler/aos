@@ -8,6 +8,7 @@
  * @property string $portal_in
  * @property int $cell_capacity
  * @property int $increase_coins_per_minute
+ * @property int $increase_coins_limit
  * @property string $increase_crew_limit
  * @property int $start_coins
  * @property int $start_crew_limit
@@ -82,7 +83,7 @@ class Model_Settings {
         $oddFactor = $c1y % 2;
         if (abs($c1y - $c2y) == 1)
         {
-            if($c1x == $c2x - $oddFactor || $c1x == $c2x + 1 - $oddFactor)
+            if($c2x == $c1x - $oddFactor || $c2x == $c1x + 1 - $oddFactor)
             {
                 return true;
             }

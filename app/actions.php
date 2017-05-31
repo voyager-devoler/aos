@@ -78,7 +78,13 @@ class actions
     
     public function getFleets()
     {
-        
+        $fleets_id = dbLink::getDB()->selectCol('select fleets.id as ARRAY_KEY, name from fleets join players on fleets.player_id=players.id');
+        $fleets = [];
+        foreach ($fleets_id as $fid=>$pname)
+        {
+            $fleets[] = ['fleet'=>new Model_Fleet($fid),'pname'=>$pname];
+        }
+        return $fleets;
     }
     
     public function getUserData()

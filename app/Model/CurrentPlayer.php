@@ -48,10 +48,10 @@ class Model_CurrentPlayer extends Model_Player
         {
             $this->_ships[$ship['id']] = new Model_Ship($ship);
         }
-        $fleets = dbLink::getDB()->select('select * from fleets where player_id = ?d', $this->id);
+        $fleets = dbLink::getDB()->selectCol('select id from fleets where player_id = ?d', $this->id);
         foreach ($fleets as $fleet)
         {
-            $this->_fleets[$fleet['id']] = new Model_Fleet($fleet);
+            $this->_fleets[$fleet] = new Model_Fleet($fleet);
         }
     }
     
@@ -106,7 +106,7 @@ class Model_CurrentPlayer extends Model_Player
             $ships[$ship_data['id']] = new Model_Ship($ship_data);
         }
         $fleet = new Model_Fleet(array('player_id' => $this->id, 'position' => Model_Settings::get()->portal_in, 'ships' => $ships));
-        $fleet->createPath(array('fleet_id'=>$fleet, 'path'=>$new_fleet_data['path']));
+        $fleet->createPath($new_fleet_data['path']);
         return $fleet->id;
     }
     
@@ -129,10 +129,10 @@ class Model_CurrentPlayer extends Model_Player
         $last_collect = dbLink::getDB()->selectRow('select id, start_time from events where player_id=?d and type="res_prod" and processed=0 and obj_id=0', $this->id);
         if (empty($last_collect))
             throw new Exception ('The coins production events list is empty...');
-        $coins = (int)((time()-strtotime($lact_collect['start_time']))/60) * Model_Settings::get()->increase_coins_per_minute;
-        if ($coins > Model_Settings::get()->increase_coins_per_minute)
-            $coins = Model_Settings::get()->increase_coins_per_minute;
-        dbLink::getDB()->query('update events set processed=1 where player_id=?d and type="res_prod" and obj_id=0 and processed=0', $this->id);
+        $coins = (int)((time()-strtotime($last_collect['start_time']))/60) * Model_Settings::get()->increase_coins_per_minute;
+        if ($coins > Model_Settings::get()->increase_coins_limit)
+            $coins = Model_Settings::get()->increase_coins_limit;
+        dbLink::getDB()->query('update events set processed=1, finish_time=NOW() where player_id=?d and type="res_prod" and obj_id=0 and processed=0', $this->id);
         $this->_makeNewCoinsProductionEvent();
         return $this->increaseCoins($coins);
     }
