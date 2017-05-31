@@ -2,6 +2,7 @@
 set_time_limit ( 5 );
 error_reporting(E_ALL & ~E_DEPRECATED);
 ini_set('display_errors', 1);
+date_default_timezone_set("Europe/Kiev");
 
 // Главный конфиг проекта
 define('ROOT_DIR', dirname(__FILE__).'/'); // Корневая папка для файлов проекта
