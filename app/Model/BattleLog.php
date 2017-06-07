@@ -44,6 +44,11 @@ class Model_BattleLog
         $this->volleys[] = array((int)$this->attacker_fleet->player_id => $attacker_volley, $this->defender_fleet->player_id => $defender_volley);
     }
     
+    public function addCapture(Model_Fleet $attacker_fleet, array $ships)
+    {
+        $this->volleys[] = [$attacker_fleet->player_id => ['capture' => $ships]];
+    }
+    
     public function save()
     {
         $sides = json_encode(array('a'=>$this->attacker_fleet->player_id, 'd'=>$this->defender_fleet->player_id));

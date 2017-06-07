@@ -146,9 +146,12 @@ class Model_Ship extends Model_Abstract
     public function prepare4Battle()
     {
         $this->gunpowder_stock = 0;
-        foreach ($this->equipments as $equipment)
+        if (!$this->prize_ship)
         {
-            $this->gunpowder_stock += Model_Equipments::getInstance()->getGunpowderRate($equipment);
+            foreach ($this->equipments as $equipment)
+            {
+                $this->gunpowder_stock += Model_Equipments::getInstance()->getGunpowderRate($equipment);
+            }
         }
     }
     
@@ -186,14 +189,19 @@ class Model_Ship extends Model_Abstract
             return false;
         }
         $this->setRowValue('hull_strength', $this->hull_strength);
+        if (!is_array($this->equipments))
+        {
+            var_dump($this);
+        }
         $this->setRowValue('equipments', implode(',',$this->equipments));
         $this->updateRow();
         return true;
     }
     
-    public function kill()
+    public function kill($captured = false)
     {
-        $this->deleteRow();
+        if (!$captured)
+            $this->deleteRow();
         Model_CurrentPlayer::getInstance()->increaseCurrentCrews(-Model_ShipTypes::getInstance()->getCrew($this->hull_type));
     }
     

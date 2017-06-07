@@ -55,7 +55,7 @@ class eventsHandler
                 }
                 if (is_null($battleResult) || $battleResult == 'AWin')
                 {
-                    $fleet->move($new_position);
+                    $fleet->move($new_position, $event['finish_time']);
                     dbLink::getDB()->query('update events set processed = 1 where id=?d',$event['id']);
                 }
             }
@@ -73,6 +73,37 @@ class eventsHandler
             $attackerVolley = new Model_Volley($attacker_fleet);
             $defenderVolley = new Model_Volley($defender_fleet);
             Model_BattleLog::getInstance()->addVolley($attacker_fleet->applyDamage($defenderVolley), $defender_fleet->applyDamage($attackerVolley));
+        }
+        $close_combat_attacker = null;
+        $close_combat_defender = null;
+        if ($attacker_fleet->canFire())
+        {
+            $close_combat_attacker = $attacker_fleet;
+            $close_combat_defender = $defender_fleet;
+        }
+        elseif ($defender_fleet->canFire())
+        {
+            $close_combat_attacker = $defender_fleet;
+            $close_combat_defender = $attacker_fleet;
+        }
+        if (!is_null($close_combat_attacker))
+        {
+            if ($close_combat_attacker->capture_mode == 1) // пробуем захватить
+            {
+                if ($close_combat_attacker->getAllCrewsNum() > $close_combat_defender->getAllCrewsNum())
+                {
+                    Model_BattleLog::getInstance()->addCapture($close_combat_attacker, $close_combat_attacker->captureShips($close_combat_defender));
+                }
+            }
+            else // пробуем добить
+            {
+                while ($close_combat_attacker->canFire() && count($close_combat_defender->getAliveShips())>0)
+                {
+                    $volley = new Model_Volley($close_combat_attacker);
+                    $empty_volley = new Model_Volley($close_combat_defender);
+                    Model_BattleLog::getInstance()->addVolley($close_combat_attacker->applyDamage($empty_volley),$close_combat_defender->applyDamage($volley));
+                }
+            }
         }
         $attacker_fleet->saveShipsState();
         $defender_fleet->saveShipsState();

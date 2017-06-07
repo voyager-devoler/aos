@@ -6,6 +6,7 @@ class Model_Fleet extends Model_Abstract
     public $move_mode;
     public $capture_mode;
     public $position;
+    public $time_for_position;
     /** @var Model_Ship|Array */
     protected $_ships;
     protected $_path = [];
@@ -167,7 +168,7 @@ class Model_Fleet extends Model_Abstract
         list ($powerfull_ship, $strongest_ship, $weakest_ship) = $this->_getTargetShips(); 
         $volley->result_data['powerful'][$powerfull_ship->id] = $powerfull_ship->applyDamage($volley->damage4powerful, $volley->crit4powerfull);
         $volley->result_data['strongest'][$strongest_ship->id] = $strongest_ship->applyDamage($volley->damage4strongest, $volley->crit4strongest);
-        $volley->result_data['weakest'][$strongest_ship->id] = $weakest_ship->applyDamage($volley->damage4weakest, $volley->crit4weakest);
+        $volley->result_data['weakest'][$weakest_ship->id] = $weakest_ship->applyDamage($volley->damage4weakest, $volley->crit4weakest);
         $all_num = count($this->getAliveShips());
         $critical_ships_id = array();
         for ($i=0; $i<$volley->crit4all; $i++)
@@ -181,7 +182,7 @@ class Model_Fleet extends Model_Abstract
                 $critical = $critical_ships_id[$ship->id];
             else
                 $critical = 0;
-            $volley->result_data[$ship->id] = $ship->applyDamage((int)$volley->damage4all/$all_num, $critical);
+            $volley->result_data[$ship->id] = $ship->applyDamage((int)($volley->damage4all/$all_num), $critical);
         }
         return $volley;
     }
@@ -208,7 +209,7 @@ class Model_Fleet extends Model_Abstract
         }
     }
     
-    public function move(string $position)
+    public function move(string $position, string $time)
     {
         if ($position == Model_Settings::get()->portal_out)
         {
@@ -216,6 +217,7 @@ class Model_Fleet extends Model_Abstract
             return false;
         }
         $this->setRowValue('position', $position);
+        $this->setRowValue('time_for_position', $time);
         $this->updateRow();
         return $position;
     }
@@ -240,6 +242,38 @@ class Model_Fleet extends Model_Abstract
         {
             $this->_ships[$id] = clone($ship);
         }
+    }
+    
+    public function getAllCrewsNum()
+    {
+        $crews = 0;
+        foreach ($this->_ships as $ship)
+        {
+            if ($ship->hull_strength > 0 && !$ship->prize_ship)
+            {
+                $crews += Model_ShipTypes::getInstance()->getCrew($ship->hull_type);
+            }
+        }
+        return $crews;
+    }
+    
+    public function delCapturedShipFromFleet($id)
+    {
+        $this->_ships[$id]->kill(true);
+        unset($this->_ships[$id]);
+    }
+    
+    public function captureShips(Model_Fleet $enemy_fleet)
+    {
+        $cships = [];
+        foreach($enemy_fleet->getAliveShips() as $ship)
+        {
+            $enemy_fleet->delCapturedShipFromFleet($ship->id); // это стоит делать до смены хозяина, т.к. не туда начислится освободившийся экипаж (потом надо будет переделать)
+            $ship->setRowValues(['fleet_id'=>$this->id, 'prize_ship'=>1, 'player_id'=>$this->player_id]);
+            $this->_ships[$ship->id] = $ship;
+            $cships[] = $ship;
+        }
+        return $cships;
     }
 }
 
