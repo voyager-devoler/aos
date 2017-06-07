@@ -141,6 +141,43 @@ class Model_CurrentPlayer extends Model_Player
     {
         dbLink::getDB()->query('insert into events (player_id, type, obj_id, start_time, finish_time) values (?d, "res_prod", 0, NOW(), ?)', $this->id, date('Y-m-d H:i:s', strtotime("+ ".(Model_Settings::get()->increase_coins_limit/Model_Settings::get()->increase_coins_per_minute)."minutes")));
     }
+    
+    public function move2FleetPortal($fleet_id)
+    {
+        $fleet = $this->_fleets[$fleet_id];
+        foreach ($fleet->getShips() as $ship)
+        {
+            $ship->fleet_id = 0;
+            $need_update_cargo = false;
+            foreach ($ship->equipments as $id=>$equipment)
+            {
+                if ($equipment == 6 && $ship->getCargoTypeByCell($id) == 1)
+                {
+                    $this->increaseCoins($ship->getCargQuantityByCell($id));
+                    $ship->clearCargoInCell($id);
+                    $need_update_cargo = true;
+                }
+            }
+            if ($need_update_cargo)
+                $ship->updateRow();
+        }
+        dbLink::getDB()->query('update ships set fleet_id = 0 where fleet_id = ?d', $fleet->id);
+        $fleet->deleteRow();
+    }
+    
+    public function sellShip($id)
+    {
+        if (!isset($this->_ships[$id]))
+            throw new ClientNotFatalException("Can't sell this ship");
+        $ship = $this->_ships[$id];
+        $cost = (int)(Model_ShipTypes::getInstance()->getCost($ship->hull_type)*$ship->hull_strength/Model_ShipTypes::getInstance()->getHull($ship->hull_type));
+        foreach ($ship->equipments as $equipment)
+        {
+            $cost+=Model_Equipments::getInstance()->getCost($equipment);
+        }
+        $ship->kill();
+        return $this->increaseCoins($cost);
+    }
 }
 
 

@@ -55,9 +55,8 @@ class eventsHandler
                 }
                 if (is_null($battleResult) || $battleResult == 'AWin')
                 {
-                    $fleet->setRowValue('position', $new_position);
+                    $fleet->move($new_position);
                     dbLink::getDB()->query('update events set processed = 1 where id=?d',$event['id']);
-                    $fleet->updateRow();
                 }
             }
             elseif ($event['type'] == 'res_prod')

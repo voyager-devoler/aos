@@ -92,9 +92,10 @@ class actions
         return Model_CurrentPlayer::getInstance();
     }
     
-    public function repairShip($ship_id)
+    public function repairShip($ship)
     {
-        
+        $ship = new Model_Ship($ship['id']);
+        return $ship->repair();
     }
     
     public function embarkShip($embark_info) // ship_id, cargo, island
@@ -102,9 +103,9 @@ class actions
         
     }
     
-    public function sellShip($ship_id)
+    public function sellShip($ship)
     {
-        
+        return Model_CurrentPlayer::getInstance()->sellShip($ship['id']);
     }
     
     public function collectCoins()

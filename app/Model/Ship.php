@@ -45,6 +45,50 @@ class Model_Ship extends Model_Abstract
         $this->cargo = $cargo_data;
     }
     
+    public function getCargoTypeByCell($cell)
+    {
+        foreach ($this->cargo as $cargo)
+        {
+            if ($cargo['cell'] == $cell)
+                return $cargo['resource'];
+        }
+        return 0;
+    }
+    
+    public function getCargQuantityByCell($cell)
+    {
+        foreach ($this->cargo as $cargo)
+        {
+            if ($cargo['cell'] == $cell)
+                return $cargo['count'];
+        }
+        return 0;
+    }
+    
+    public function clearCargoInCell($cell)
+    {
+        foreach ($this->cargo as $id=>$cargo)
+        {
+            if ($cargo['cell'] == $cell)
+            {
+                unset ($this->cargo[$id]);
+                $this->setRowValue('cargo', $this->packCargoData(), true);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    protected function packCargoData()
+    {
+        $cdata = [];
+        foreach ($this->cargo as $cargo)
+        {
+            $cdata[] = $cargo['cell'].','.$cargo['resource'].','.$cargo['count'];
+        }
+        return implode(';',$cdata);
+    }
+    
     public function getFireRate($useGunepowderStock = false)
     {
         $fire_rate = 0;
@@ -151,6 +195,16 @@ class Model_Ship extends Model_Abstract
     {
         $this->deleteRow();
         Model_CurrentPlayer::getInstance()->increaseCurrentCrews(-Model_ShipTypes::getInstance()->getCrew($this->hull_type));
+    }
+    
+    public function repair()
+    {
+        if ($this->fleet_id != 0)
+            throw new ClientNotFatalException("Can't repair this ship");
+        $repair_cost = (int)(Model_ShipTypes::getInstance()->getCost($this->hull_type) * Model_Settings::get()->ship_repair_cost / 100);
+        Model_CurrentPlayer::getInstance()->increaseCoins(-$repair_cost);
+        $this->setRowValue('hull_strength', Model_ShipTypes::getInstance()->getHull($this->hull_type));
+        $this->updateRow();
     }
   
 }

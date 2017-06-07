@@ -15,11 +15,7 @@ class views
 //                'path' => $fleet->getPath()
             );
         }
-        $ships = array();
-        foreach ($player->getAllShips() as $ship)
-        {
-            $ships[] = $ship;
-        }
+
         return array(
             'id'=>$player->id,
             'name'=>$player->name,
@@ -27,7 +23,7 @@ class views
             'crew_limit'=>$player->crew_limit,
             'crews'=>$player->crews,
             'fleets'=>$fleets_data,
-            'ships'=>$ships    
+            'ships'=>array_values($player->getAllShips())    
         );
     }
     

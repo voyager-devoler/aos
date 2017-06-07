@@ -104,12 +104,12 @@ class Model_Fleet extends Model_Abstract
     
     public function canFire()
     {
-        $canfire = false;
         foreach ($this->_ships as $ship)
         {
             if ($ship->canFire())
                 return true;
         }
+        return false;
     }
     
     public function getShips()
@@ -186,15 +186,6 @@ class Model_Fleet extends Model_Abstract
         return $volley;
     }
     
-    public function getShipsDataAsArray()
-    {
-        $data = array();
-        foreach ($this->_ships as $ship)
-        {
-            
-        }
-    }
-    
     public function saveShipsState()
     {
         foreach ($this->_ships as $ship) /* @var $ship Model_Ship */
@@ -214,6 +205,40 @@ class Model_Fleet extends Model_Abstract
         foreach ($this->_ships as $ship)
         {
             $ship->prepare4Battle();
+        }
+    }
+    
+    public function move(string $position)
+    {
+        if ($position == Model_Settings::get()->portal_out)
+        {
+            Model_CurrentPlayer::getInstance()->move2FleetPortal($this->id);
+            return false;
+        }
+        $this->setRowValue('position', $position);
+        $this->updateRow();
+        return $position;
+    }
+    
+    public function getFleetData()
+    {
+        return [
+            'id'=>$this->id,
+            'player_id'=>$this->player_id,
+            'position'=>$this->position,
+            'move_mode'=>$this->move_mode,
+            'capture_mode'=>$this->capture_mode,
+            'ships'=>array_values($this->getShips())
+        ];
+    }
+    
+    public function cloneShips()
+    {
+        $ships = $this->_ships;
+        unset($this->_ships);
+        foreach($ships as $id=>$ship)
+        {
+            $this->_ships[$id] = clone($ship);
         }
     }
 }

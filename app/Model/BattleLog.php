@@ -32,7 +32,9 @@ class Model_BattleLog
         $attacker_fleet->prepare4Battle();
         $defender_fleet->prepare4Battle();
         $this->attacker_fleet = clone($attacker_fleet);
+        $this->attacker_fleet->cloneShips();
         $this->defender_fleet = clone($defender_fleet);
+        $this->defender_fleet->cloneShips();
         $this->time = $time;
         $this->place = $place;
     }
@@ -49,7 +51,7 @@ class Model_BattleLog
                 $sides,
                 $this->time,
                 $this->place,
-                json_encode(['a'=>$this->attacker_fleet,'d'=>$this->defender_fleet]),
+                json_encode(['a'=>$this->attacker_fleet->getFleetData(),'d'=>$this->defender_fleet->getFleetData()]),
                 json_encode($this->volleys),
                 '');
     }
