@@ -51,7 +51,9 @@ class Model_BattleLog
     
     public function save()
     {
-        $sides = json_encode(array('a'=>$this->attacker_fleet->player_id, 'd'=>$this->defender_fleet->player_id));
+        $attacker_name = dbLink::getDB()->selectCell('select name from players where id=?d', $this->attacker_fleet->player_id);
+        $defender_name = dbLink::getDB()->selectCell('select name from players where id=?d', $this->defender_fleet->player_id);
+        $sides = json_encode(array('a'=>['id'=>$this->attacker_fleet->player_id,'name'=>$attacker_name], 'd'=>['id'=>$this->defender_fleet->player_id,'name'=>$defender_name]));
         return dbLink::getDB()->query('insert into battles (sides,time,position,fleets,volleys,result) values (?,?,?,?,?,?)',
                 $sides,
                 $this->time,
@@ -59,6 +61,11 @@ class Model_BattleLog
                 json_encode(['a'=>$this->attacker_fleet->getFleetData(),'d'=>$this->defender_fleet->getFleetData()]),
                 json_encode($this->volleys),
                 '');
+    }
+    
+    public function getBattleData($id)
+    {
+        return dbLink::getDB()->selectRow('select sides,time,position,fleets,volleys from battles where id=?d', $id);
     }
 }
 

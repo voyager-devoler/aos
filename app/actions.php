@@ -37,7 +37,8 @@ class actions
     
     public function setMoveMode(array $mode_info) // fleet_id, mode
     {
-        
+        $fleet = new Model_Fleet($mode_info['id']);
+        return $fleet->setMoveMode($mode_info['move_mode']);
     }
     
     public function getShipName()
@@ -48,7 +49,20 @@ class actions
     
     public function setCaptureMode(array $capture_info) // fleet_id, mode
     {
-        
+        $fleet = new Model_Fleet($capture_info['id']);
+        return $fleet->setCaptureMode($capture_info['capture_mode']);
+    }
+    
+    public function setFireTactic(array $fire_info)
+    {
+        $ship = new Model_Ship($fire_info['id']);
+        return $ship->setFireTactic($fire_info['fire_tactic']);
+    }
+    
+    public function setLine(array $line_info)
+    {
+        $ship = new Model_Ship($line_info['id']);
+        return $ship->setLine($line_info['line']);
     }
     
     public function getHullTypes()
@@ -111,6 +125,11 @@ class actions
     public function collectCoins()
     {
         return Model_CurrentPlayer::getInstance()->collectCoins();
+    }
+    
+    public function getBattle($bid)
+    {
+        return Model_BattleLog::getInstance()->getBattleData($bid['id']);
     }
 }
 

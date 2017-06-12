@@ -57,5 +57,13 @@ class views
         }
         return $resp;
     }
+    
+    public function getBattle(array $battle_data)
+    {
+        $battle_data['sides'] = json_decode($battle_data['sides'], true);
+        $battle_data['fleets'] = json_decode($battle_data['fleets'], true);
+        $battle_data['volleys'] = json_decode($battle_data['volleys'], true);
+        return $battle_data;
+    }
 }
 

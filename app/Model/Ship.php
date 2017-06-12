@@ -12,6 +12,7 @@ class Model_Ship extends Model_Abstract
     public $prize_ship;
     public $fire_tactic;
     public $name;
+    public $line;
     public $cargo;
     protected $_tablename = 'ships';
     
@@ -181,6 +182,10 @@ class Model_Ship extends Model_Abstract
         
     }
     
+    /**
+     * собственно, сэйвит статы кораблей изменившиеся в результате боя
+     * @return boolean
+     */
     public function saveState()
     {
         if ($this->hull_strength == 0)
@@ -202,7 +207,8 @@ class Model_Ship extends Model_Abstract
     {
         if (!$captured)
             $this->deleteRow();
-        Model_CurrentPlayer::getInstance()->increaseCurrentCrews(-Model_ShipTypes::getInstance()->getCrew($this->hull_type));
+        if (!$this->prize_ship)
+            Model_CurrentPlayer::getInstance()->increaseCurrentCrews(-Model_ShipTypes::getInstance()->getCrew($this->hull_type));
     }
     
     public function repair()
@@ -214,6 +220,17 @@ class Model_Ship extends Model_Abstract
         $this->setRowValue('hull_strength', Model_ShipTypes::getInstance()->getHull($this->hull_type));
         $this->updateRow();
     }
-  
+    
+    public function setFireTactic($tactic)
+    {
+        $this->setRowValue('fire_tactic', $tactic);
+        return $this->updateRow();
+    }
+    
+    public function setLine($line)
+    {
+        $this->setRowValue('line', $line);
+        return $this->updateRow();
+    }
 }
 

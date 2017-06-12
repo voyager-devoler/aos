@@ -13,7 +13,7 @@ class Model_Volley
     
     public function __construct(Model_Fleet $fleet) {
         
-        foreach ($fleet->getShips() as $ship) /* @var $ship Model_Ship */
+        foreach ($fleet->getAliveShips() as $ship) /* @var $ship Model_Ship */
         {
             list($damage,$critical) = $ship->fire();
             switch ($ship->fire_tactic)

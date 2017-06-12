@@ -118,20 +118,44 @@ class Model_Fleet extends Model_Abstract
         return $this->_ships;
     }
     
+    public function setMoveMode($mode)
+    {
+        $this->setRowValue('move_mode', $mode);
+        return $this->updateRow();
+    }
+    
+    public function setCaptureMode($mode)
+    {
+        $this->setRowValue('capture_mode', $mode);
+        return $this->updateRow();
+    }
+    
+    /**
+     * возвращает массив живых кораблей текущей активной линии
+     * @return array|Model_Ship
+     */
     public function getAliveShips()
     {
         $alive = array();
         foreach ($this->_ships as $ship)
         {
-            if ($ship->hull_strength > 0)
+            if ($ship->hull_strength > 0 && $ship->line == 1)
                 $alive[] = $ship;
+        }
+        if (empty($alive))
+        {
+            foreach ($this->_ships as $ship)
+            {
+                if ($ship->hull_strength > 0)
+                    $alive[] = $ship;
+            }
         }
         return $alive;
     }
     
     /**
      * 
-     * @return array of Model_Ship
+     * @return array|Model_Ship
      */
     protected function _getTargetShips()
     {
@@ -141,7 +165,7 @@ class Model_Fleet extends Model_Abstract
         $powerfull_ship = null;
         $strongest_ship = null;
         $weakest_ship = null;
-        foreach ($this->_ships as $ship)
+        foreach ($this->getAliveShips() as $ship)
         {
             if ($maxfirepower < $ship->getFireRate(true))
             {
@@ -153,7 +177,7 @@ class Model_Fleet extends Model_Abstract
                 $maxhull = $ship->hull_strength;
                 $strongest_ship = $ship;
             }
-            if ($minhull > $ship->hull_strength && $ship->hull_strength > 0)
+            if ($minhull > $ship->hull_strength)
             {
                 $minhull = $ship->hull_strength;
                 $weakest_ship = $ship;
