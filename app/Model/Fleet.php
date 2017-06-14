@@ -64,7 +64,7 @@ class Model_Fleet extends Model_Abstract
     
     public function deleteCurrentPath()
     {
-        dbLink::getDB()->query('delete from events where type="fleet_move" and obj_id=?d',$this->id);
+        dbLink::getDB()->query('update events set processed=2 where type="fleet_move" and obj_id=?d',$this->id);
     }
     
     public function createPath(array $path)
@@ -198,7 +198,10 @@ class Model_Fleet extends Model_Abstract
         for ($i=0; $i<$volley->crit4all; $i++)
         {
             $ship = $this->getAliveShips()[array_rand($this->getAliveShips())];
-            $critical_ships_id[$ship->id]++;
+            if (!isset($critical_ships_id[$ship->id]))
+                $critical_ships_id[$ship->id] = 1;
+            else
+                $critical_ships_id[$ship->id]++;
         }
         foreach ($this->_ships as $ship)
         {
@@ -206,7 +209,7 @@ class Model_Fleet extends Model_Abstract
                 $critical = $critical_ships_id[$ship->id];
             else
                 $critical = 0;
-            $volley->result_data[$ship->id] = $ship->applyDamage((int)($volley->damage4all/$all_num), $critical);
+            $volley->result_data['all'][$ship->id] = $ship->applyDamage((int)($volley->damage4all/$all_num), $critical);
         }
         return $volley;
     }

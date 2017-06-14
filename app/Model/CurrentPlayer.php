@@ -39,7 +39,7 @@ class Model_CurrentPlayer extends Model_Player
             $this->setRowValues(array('name'=>$this->name, 'coins'=>$this->coins, 'crew_limit'=>$this->crew_limit,'device_id'=>self::$_device_id));
             $this->id = $this->insertRow();
             $first_ship_id = $this->createNewShip(1, '', array(6,6,6,6));
-            $this->_makeNewCoinsProductionEvent();
+            $this->makeNewCoinsProductionEvent();
             Model_Packet::setNeedRequest('setUsername');
         }
         parent::__construct($this->id);
@@ -133,13 +133,8 @@ class Model_CurrentPlayer extends Model_Player
         if ($coins > Model_Settings::get()->increase_coins_limit)
             $coins = Model_Settings::get()->increase_coins_limit;
         dbLink::getDB()->query('update events set processed=1, finish_time=NOW() where player_id=?d and type="res_prod" and obj_id=0 and processed=0', $this->id);
-        $this->_makeNewCoinsProductionEvent();
+        $this->makeNewCoinsProductionEvent();
         return $this->increaseCoins($coins);
-    }
-    
-    protected function _makeNewCoinsProductionEvent()
-    {
-        dbLink::getDB()->query('insert into events (player_id, type, obj_id, start_time, finish_time) values (?d, "res_prod", 0, NOW(), ?)', $this->id, date('Y-m-d H:i:s', strtotime("+ ".(Model_Settings::get()->increase_coins_limit/Model_Settings::get()->increase_coins_per_minute)."minutes")));
     }
     
     public function move2FleetPortal($fleet_id)
@@ -173,10 +168,48 @@ class Model_CurrentPlayer extends Model_Player
         $cost = (int)(Model_ShipTypes::getInstance()->getCost($ship->hull_type)*$ship->hull_strength/Model_ShipTypes::getInstance()->getHull($ship->hull_type));
         foreach ($ship->equipments as $equipment)
         {
-            $cost+=Model_Equipments::getInstance()->getCost($equipment);
+            if ($equipment!=0)
+                $cost+=Model_Equipments::getInstance()->getCost($equipment);
         }
         $ship->kill();
         return $this->increaseCoins($cost);
+    }
+    
+    public function staffPrizeShip($id)
+    {
+        if (!isset($this->_ships[$id]))
+            throw new ClientNotFatalException("You don't have ship id ({$id})");
+        $ship = $this->_ships[$id];
+        if (!$ship->prize_ship)
+            throw new ClientNotFatalException("This is not a prize ship (id:{$id})");
+        $this->increaseCurrentCrews(Model_ShipTypes::getInstance()->getCrew($ship->hull_type));
+        $ship->setRowValue('prize_ship', 0);
+        $ship->updateRow();
+        return true;
+    }
+    
+    public function embarkShip($ship_id, $cell_id, $resource_id)
+    {
+        if (!isset($this->_ships[$ship_id]))
+            throw new ClientNotFatalException('Something is wrong...');
+        $ship = $this->_ships[$ship_id];
+        $fleet = $this->_fleets[$ship->fleet_id];
+        $point_data = Model_Settings::get()->getResPointByPosition($fleet->position);
+        if ($point_data === false)
+            throw new ClientNotFatalException('Your ship is not in resource island position');
+        $last_collect = dbLink::getDB()->selectRow('select id, start_time from, params events where player_id=?d and type="res_prod" and processed=0 and obj_id=?d', $this->id, $point_data['id']);
+        $coins = (int)((time()-strtotime($last_collect['start_time']))/60) * $point_data['res'] + (int)$last_collect['params'];
+        $remains = 0;
+        if ($coins > Model_Settings::get()->cell_capacity)
+        {
+            $remains = $coins - Model_Settings::get()->cell_capacity;
+            $coins = Model_Settings::get()->cell_capacity;
+        }
+        $ship->addCargo2Cell($cell_id, 1, $coins);
+        $ship->updateRow();
+        dbLink::getDB()->query('update events set processed=1 where id=?d', $last_collect['id']);
+        $this->makeNewCoinsProductionEvent($point_data['id'], $remains);
+        return ['quantity'=>$coins, 'remains'=>$remains];
     }
 }
 

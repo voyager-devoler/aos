@@ -4,7 +4,7 @@ class eventsHandler
     
     public function execute()
     {
-        $events = dbLink::getDB()->select('select *, id as ARRAY_KEY from events where finish_time<=? and processed = 0 order by finish_time desc',date('Y-m-d H:i:s'));
+        $events = dbLink::getDB()->select('select *, id as ARRAY_KEY from events where finish_time<=? and processed = 0 order by finish_time',date('Y-m-d H:i:s'));
         $events_check = array_column($events, 'processed', 'id');
         foreach ($events as $event)
         {
@@ -57,6 +57,25 @@ class eventsHandler
                 {
                     $fleet->move($new_position, $event['finish_time']);
                     dbLink::getDB()->query('update events set processed = 1 where id=?d',$event['id']);
+                    foreach (Model_Settings::get()->getResourcePointsAsArray() as $pid=>$point)
+                    {
+                        if ($new_position == $point['point'])
+                        {
+                            $owner = dbLink::getDB()->selectCell('select player_id from events where type="res_prod" and obj_id=?d and processed = 0',$pid);
+                            if ($owner!=$fleet->player_id)
+                            {
+                                $winner = new Model_Player($fleet->player_id);
+                                $winner->createMessage("You have captured resource island #{$pid}. Mining operations began.");
+                                if (!empty($owner))
+                                {
+                                    $looser = new Model_Player($owner);
+                                    $looser->createMessage("Player {$winner->name} has captured your resource island #{$pid}");
+                                    dbLink::getDB()->query('update events set processed = 2 where type="res_prod" and obj_id=?d and processed = 0',$pid);
+                                }
+                                $winner->makeNewCoinsProductionEvent($pid);
+                            }
+                        }
+                    }
                 }
             }
             elseif ($event['type'] == 'res_prod')

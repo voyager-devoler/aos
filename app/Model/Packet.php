@@ -74,6 +74,7 @@ class Model_Packet
                 if ($event['type'] == 'res_prod')
                 {
                     $events[$id]['source_id'] = $event['obj_id'];
+                    $events[$id]['remains'] = $event['params'];
                     
                 }
                 unset($events[$id]['obj_id']);

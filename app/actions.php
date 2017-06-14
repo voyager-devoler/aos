@@ -53,7 +53,7 @@ class actions
         return $fleet->setCaptureMode($capture_info['capture_mode']);
     }
     
-    public function setFireTactic(array $fire_info)
+    public function setFireTactics(array $fire_info)
     {
         $ship = new Model_Ship($fire_info['id']);
         return $ship->setFireTactic($fire_info['fire_tactic']);
@@ -112,9 +112,9 @@ class actions
         return $ship->repair();
     }
     
-    public function embarkShip($embark_info) // ship_id, cargo, island
+    public function embarkShip($embark_info) // ship_id, cargo, res
     {
-        
+        return Model_CurrentPlayer::getInstance()->embarkShip($embark_info['ship_id'], $embark_info['cell'], $embark_info['resource']);
     }
     
     public function sellShip($ship)
@@ -130,6 +130,11 @@ class actions
     public function getBattle($bid)
     {
         return Model_BattleLog::getInstance()->getBattleData($bid['id']);
+    }
+    
+    public function staffShip($ship)
+    {
+        return Model_CurrentPlayer::getInstance()->staffPrizeShip($ship['id']);
     }
 }
 

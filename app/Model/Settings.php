@@ -95,6 +95,27 @@ class Model_Settings {
     {
         return $this->_settingsData;
     }
+    
+    public function getResourcePointsAsArray()
+    {
+        $pdata = dbLink::getDB()->selectCol('SELECT value FROM settings where name like "island_%"');
+        $points = [];
+        foreach ($pdata as $id=>$point)
+        {
+            list($points[$id+1]['point'],$points[$id+1]['res']) = explode(':',$point);
+        }
+        return $points;
+    }
+    
+    public function getResPointByPosition($position)
+    {
+        foreach ($this->getResourcePointsAsArray() as $id=>$point)
+        {
+            if ($point['point'] == $position)
+                return ['id'=>$id,'point'=>$point['point'],'res'=>$point['res']];
+        }
+        return false;
+    }
 }
 ?>
 

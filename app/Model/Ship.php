@@ -80,6 +80,17 @@ class Model_Ship extends Model_Abstract
         return false;
     }
     
+    public function addCargo2Cell($cell, $cargo, $quantity)
+    {
+        if (!isset($this->equipments[$cell]) || Model_Equipments::getInstance()->getName($this->equipments[$cell])!='cargo_bay')
+            throw new ClientNotFatalException('Incorrect cell');
+        if ($this->getCargoTypeByCell($cell)!=0)
+            throw new ClientNotFatalException('The cargo bay is not empty');
+        $this->cargo[] = ['cell'=>$cell, 'resource'=>$cargo, 'count'=>$quantity];
+        $this->setRowValue('cargo', $this->packCargoData(), true);
+        return true;
+    }
+    
     protected function packCargoData()
     {
         $cdata = [];
