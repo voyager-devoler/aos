@@ -52,7 +52,8 @@ class views
                 'id'=>$fleet['fleet']->id,
                 'player_id'=>$fleet['fleet']->player_id,
                 'position'=>$fleet['fleet']->position,
-                'player_name'=>$fleet['pname']
+                'player_name'=>$fleet['pname'],
+                'icon'=>$fleet['fleet']->getHullTypeIcon()
             ];
         }
         return $resp;

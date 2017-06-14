@@ -15,15 +15,14 @@ class Model_Fleet extends Model_Abstract
     public function __construct($fleet_data) {
         if (is_array($fleet_data))
         {
-            $this->_ships = $fleet_data['ships'];
+            $ships = $fleet_data['ships'];
             $this->position = $fleet_data['position'];
             unset ($fleet_data['ships']);
             $this->_dbRawRowValues = $fleet_data;
             $this->id = $this->insertRow();
-            foreach ($this->_ships as $ship) /* @var $ship Model_Ship */
+            foreach ($ships as $ship) /* @var $ship Model_Ship */
             {
-                $ship->setRowValue('fleet_id', $this->id);
-                $ship->updateRow();
+                $this->addShip($ship);
             }
         }
         else
@@ -287,6 +286,11 @@ class Model_Fleet extends Model_Abstract
     public function delCapturedShipFromFleet($id)
     {
         $this->_ships[$id]->kill(true);
+        $this->delShipFromFleet($id);
+    }
+    
+    public function delShipFromFleet($id)
+    {
         unset($this->_ships[$id]);
     }
     
@@ -301,6 +305,39 @@ class Model_Fleet extends Model_Abstract
             $cships[] = $ship;
         }
         return $cships;
+    }
+    
+    public function addShip(Model_Ship $ship)
+    {
+        $this->_ships[$ship->id] = $ship; 
+        $ship->setRowValue('fleet_id', $this->id);
+        $ship->updateRow();
+    }
+    
+    public function addAllShipsFromOtherFleet(Model_Fleet $other_fleet)
+    {
+        foreach ($other_fleet->getShips() as $ship)
+        {
+            $other_fleet->delShipFromFleet($ship->id);
+            $this->addShip($ship);
+        }
+    }
+    
+    public function getHullTypeIcon()
+    {
+        $hullCrews = [];
+        foreach ($this->_ships as $ship)
+        {
+            if ($ship->prize_ship)
+                $crew = 1;
+            else
+                $crew = Model_ShipTypes::getInstance()->getCrew($ship->hull_type);
+            if (isset($hullCrews[$ship->hull_type]))
+                $hullCrews[$ship->hull_type] += $crew;
+            else 
+                $hullCrews[$ship->hull_type] = $crew;
+        }
+        return array_keys($hullCrews, max($hullCrews))[0];
     }
 }
 

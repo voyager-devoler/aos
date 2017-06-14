@@ -211,6 +211,65 @@ class Model_CurrentPlayer extends Model_Player
         $this->makeNewCoinsProductionEvent($point_data['id'], $remains);
         return ['quantity'=>$coins, 'remains'=>$remains];
     }
+    
+    public function createNewFletFromOld(array $ships_id)
+    {
+        $fleet_id = null;
+        $ships = [];
+        foreach ($ships_id as $ship_id)
+        {
+            if (!isset($this->_ships[$ship_id]))
+                throw new ClientNotFatalException("Incorrect ship id {$ship_id}");
+            if (is_null($fleet_id))
+                $fleet_id = $this->_ships[$ship_id]->fleet_id;
+            elseif ($fleet_id != $this->_ships[$ship_id]->fleet_id)
+                throw new ClientNotFatalException("All ships must be from the same fleet.");
+            $ships[] = $this->_ships[$ship_id];
+        }
+        if (!isset($this->_fleets[$fleet_id]))
+            throw new ClientNotFatalException("Incorrect fleet");
+        $fleet = $this->_fleets[$fleet_id];
+        foreach ($ships as $ship)
+        {
+            $fleet->delShipFromFleet($ship->id);
+        }
+        $newfleet = new Model_Fleet(array('player_id' => $this->id, 'position' => $fleet->position, 'ships' => $ships)); // новые fleet_id присвоятся кораблям автоматом
+        $this->_fleets[$newfleet->id] = $newfleet;
+        return $newfleet->id;
+    }
+    
+    public function mergeFleets(array $fleets_id)
+    {
+        $position = null;
+        foreach ($fleets_id as $fleet_id)
+        {
+            if (!isset($this->_fleets[$fleet_id]))
+                throw new ClientNotFatalException("Incorrect fleet id {$fleet_id}");
+            if (is_null($position))
+            {
+                $fleet = $this->_fleets[$fleet_id];
+                $position = $fleet->position;
+            }
+            elseif($position != $this->_fleets[$fleet_id]->position)
+                throw new ClientNotFatalException("All fleets must be in the same position.");
+        }
+        foreach ($fleets_id as $fleet_id)
+        {
+            if ($fleet_id == $fleet->id)
+                continue;
+            $fleet->addAllShipsFromOtherFleet($this->_fleets[$fleet_id]);
+            $this->_fleets[$fleet_id]->deleteCurrentPath();
+            $this->_fleets[$fleet_id]->deleteRow();
+            unset($this->_fleets[$fleet_id]);
+        }
+        $fleet->deleteCurrentPath();
+        return $fleet->id;
+    }
+      
+    public function markMessageAsRead($id)
+    {
+        return dbLink::getDB()->query('update messages set read = 1 where id=?d', $id);
+    }
 }
 
 

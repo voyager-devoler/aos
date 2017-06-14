@@ -81,7 +81,7 @@ class Model_Packet
                 unset ($events[$id]['params']);
             }
             $response['events'] = $events;
-            $response['messages'] = dbLink::getDB()->select('select id, time, text from messages where player_id = ?d and delivered = 0', Model_CurrentPlayer::getInstance()->id);
+            $response['messages'] = dbLink::getDB()->select('select id, time, text from messages where player_id = ?d and read = 0', Model_CurrentPlayer::getInstance()->id);
         }
         catch (InsufficientResourceException $e)
         {

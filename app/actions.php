@@ -136,5 +136,20 @@ class actions
     {
         return Model_CurrentPlayer::getInstance()->staffPrizeShip($ship['id']);
     }
+    
+    public function addShips2NewFleet($ships_id)
+    {
+        return Model_CurrentPlayer::getInstance()->createNewFletFromOld($ships_id['ids']);
+    }
+    
+    public function mergeFleets($fleets_id)
+    {
+        return Model_CurrentPlayer::getInstance()->mergeFleets($fleets_id['ids']);
+    }
+    
+    public function markAsRead($message)
+    {
+        return Model_CurrentPlayer::getInstance()->markMessageAsRead($message['id']);
+    }
 }
 
