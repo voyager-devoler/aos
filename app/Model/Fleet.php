@@ -239,13 +239,40 @@ class Model_Fleet extends Model_Abstract
     {
         if ($position == Model_Settings::get()->portal_out)
         {
-            Model_CurrentPlayer::getInstance()->move2FleetPortal($this->id);
+            $this->move2Portal();
             return false;
         }
         $this->setRowValue('position', $position);
         $this->setRowValue('time_for_position', $time);
         $this->updateRow();
         return $position;
+    }
+    
+    public function move2Portal()
+    {
+        foreach ($this->getShips() as $ship)
+        {
+            $ship->fleet_id = 0;
+            $need_update_cargo = false;
+            $coins = 0;
+            foreach ($ship->equipments as $id=>$equipment)
+            {
+                if ($equipment == 6 && $ship->getCargoTypeByCell($id) == 1)
+                {
+                    $coins += $ship->getCargQuantityByCell($id);
+                    $ship->clearCargoInCell($id);
+                    $need_update_cargo = true;
+                }
+            }
+            if ($need_update_cargo)
+            {
+                $ship->updateRow();
+                $player = new Model_Player($this->player_id);
+                $player->increaseCoins($coins);
+            }
+        }
+        dbLink::getDB()->query('update ships set fleet_id = 0 where fleet_id = ?d', $this->id);
+        $this->deleteRow();
     }
     
     public function getFleetData()

@@ -219,7 +219,15 @@ class Model_Ship extends Model_Abstract
         if (!$captured)
             $this->deleteRow();
         if (!$this->prize_ship)
-            Model_CurrentPlayer::getInstance()->increaseCurrentCrews(-Model_ShipTypes::getInstance()->getCrew($this->hull_type));
+        {
+            if (Model_CurrentPlayer::isCreated())
+                Model_CurrentPlayer::getInstance()->increaseCurrentCrews(-Model_ShipTypes::getInstance()->getCrew($this->hull_type));
+            else
+            {
+                $player = new Model_Player($this->player_id);
+                $player->increaseCurrentCrews(-Model_ShipTypes::getInstance()->getCrew($this->hull_type));
+            }
+        }
     }
     
     public function repair()

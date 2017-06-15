@@ -1,9 +1,7 @@
 <?php
 class Model_CurrentPlayer extends Model_Player
 {
-    public $coins;
     public $crew_limit;
-    public $crews;
     /** @var Model_Ship|Array */
     protected $_ships = array();
     /** @var Model_Fleet|Array */
@@ -16,6 +14,12 @@ class Model_CurrentPlayer extends Model_Player
         self::$_device_id = $device_id;
     }
     
+    public static function isCreated() // пока обработчик событий не в отдельном скрипте...
+    {
+        return !is_null(self::$_device_id);
+    }
+
+
     /**
      * 
      * @return Model_CurrentPlayer
@@ -59,22 +63,6 @@ class Model_CurrentPlayer extends Model_Player
     {
         if (is_array($this->_dbRawRowValues))
             $this->updateRow();
-    }
-    
-    public function increaseCoins(int $coins)
-    {
-        if ($this->coins + $coins < 0)
-            throw new InsufficientResourceException('Insufficient coins');
-        $this->setRowValue('coins', $this->coins + $coins);
-        return $this->coins;
-    }
-    
-    public function increaseCurrentCrews(int $crews)
-    {
-        if ($this->crews + $crews > $this->crew_limit)
-            throw new InsufficientResourceException('Crew limit reached');
-        $this->setRowValue('crews', $this->crews + $crews);
-        return $this->crews;
     }
     
     public function createNewShip($type,$name,array $equipments)
@@ -137,29 +125,6 @@ class Model_CurrentPlayer extends Model_Player
         return $this->increaseCoins($coins);
     }
     
-    public function move2FleetPortal($fleet_id)
-    {
-        $fleet = $this->_fleets[$fleet_id];
-        foreach ($fleet->getShips() as $ship)
-        {
-            $ship->fleet_id = 0;
-            $need_update_cargo = false;
-            foreach ($ship->equipments as $id=>$equipment)
-            {
-                if ($equipment == 6 && $ship->getCargoTypeByCell($id) == 1)
-                {
-                    $this->increaseCoins($ship->getCargQuantityByCell($id));
-                    $ship->clearCargoInCell($id);
-                    $need_update_cargo = true;
-                }
-            }
-            if ($need_update_cargo)
-                $ship->updateRow();
-        }
-        dbLink::getDB()->query('update ships set fleet_id = 0 where fleet_id = ?d', $fleet->id);
-        $fleet->deleteRow();
-    }
-    
     public function sellShip($id)
     {
         if (!isset($this->_ships[$id]))
@@ -197,7 +162,7 @@ class Model_CurrentPlayer extends Model_Player
         $point_data = Model_Settings::get()->getResPointByPosition($fleet->position);
         if ($point_data === false)
             throw new ClientNotFatalException('Your ship is not in resource island position');
-        $last_collect = dbLink::getDB()->selectRow('select id, start_time from, params events where player_id=?d and type="res_prod" and processed=0 and obj_id=?d', $this->id, $point_data['id']);
+        $last_collect = dbLink::getDB()->selectRow('select id, start_time, params from events where player_id=?d and type="res_prod" and processed=0 and obj_id=?d', $this->id, $point_data['id']);
         $coins = (int)((time()-strtotime($last_collect['start_time']))/60) * $point_data['res'] + (int)$last_collect['params'];
         $remains = 0;
         if ($coins > Model_Settings::get()->cell_capacity)
@@ -268,7 +233,13 @@ class Model_CurrentPlayer extends Model_Player
       
     public function markMessageAsRead($id)
     {
-        return dbLink::getDB()->query('update messages set read = 1 where id=?d', $id);
+        return dbLink::getDB()->query('update messages set `read` = 1 where id in (?a)', $id);
+    }
+    
+    public function increaseMaxCrews()
+    {
+        $this->increaseCoins(-Model_Settings::get()->getIncCrewsCosts());
+        return $this->setRowValue('crew_limit', $this->crew_limit + Model_Settings::get()->getIncCrewsNum());
     }
 }
 

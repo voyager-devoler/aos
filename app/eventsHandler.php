@@ -23,14 +23,14 @@ class eventsHandler
                         continue;
                     
                     Model_BattleLog::getInstance()->initBattle($fleet, $other_fleet, $event['finish_time'], $new_position);
-                    $battleResult = $this->makeBattle($fleet, $other_fleet);
+                    list($battle_id,$battleResult) = $this->makeBattle($fleet, $other_fleet);
                     $player = new Model_Player($fleet->player_id);
                     $other_player = new Model_Player($other_fleet->player_id);
-                    $player->createMessage("{$player->name}! Your fleet attacks {$other_player->name}'s fleet in the position ({$new_position})");
-                    $other_player->createMessage("{$other_player->name}! Your fleet was attaked by {$player->name}'s fleet in position ({$new_position})");
+                    $player->createMessage("{$player->name}! Your fleet attacks {$other_player->name}'s fleet in the position ({$new_position})", $event['finish_time'], $new_position, $battle_id);
+                    $other_player->createMessage("{$other_player->name}! Your fleet was attaked by {$player->name}'s fleet in position ({$new_position})", $event['finish_time'], $new_position, $battle_id);
                     if ($battleResult == 'ALoose')
                     {
-                        $player->createMessage("{$player->name}! Your fleet was stoped in the position ({$new_position}) after battle with {$other_player->name}'s fleet");
+                        $player->createMessage("{$player->name}! Your fleet was stoped in the position ({$new_position}) after battle with {$other_player->name}'s fleet", $event['finish_time'], $new_position, $battle_id);
                     }
                     if ($battleResult == 'ALost' || $battleResult == 'ALoose')
                     {
@@ -39,7 +39,7 @@ class eventsHandler
                     elseif ($battleResult == 'AWin')
                     {
                         $looser_fleet = $other_fleet;
-                        $other_player->createMessage("Your fleet was defeated in ({$new_position}) by {$player->name}");
+                        $other_player->createMessage("Your fleet was defeated in ({$new_position}) by {$player->name}", $event['finish_time'], $new_position, $battle_id);
                     }
                     $looser_fleet->deleteCurrentPath();
                     if (dbLink::getDB()->query('update events set processed = 2 where type="fleet_move" and obj_id = ?d and id!=?d and processed=0',$looser_fleet->id, $event['id'])>0)
@@ -65,11 +65,11 @@ class eventsHandler
                             if ($owner!=$fleet->player_id)
                             {
                                 $winner = new Model_Player($fleet->player_id);
-                                $winner->createMessage("You have captured resource island #{$pid}. Mining operations began.");
+                                $winner->createMessage("You have captured resource island #{$pid}. Mining operations began.",$event['finish_time'],$new_position);
                                 if (!empty($owner))
                                 {
                                     $looser = new Model_Player($owner);
-                                    $looser->createMessage("Player {$winner->name} has captured your resource island #{$pid}");
+                                    $looser->createMessage("Player {$winner->name} has captured your resource island #{$pid}",$event['finish_time'],$new_position);
                                     dbLink::getDB()->query('update events set processed = 2 where type="res_prod" and obj_id=?d and processed = 0',$pid);
                                 }
                                 $winner->makeNewCoinsProductionEvent($pid);
@@ -130,12 +130,12 @@ class eventsHandler
             $attacker_fleet->deleteRow();
         if (count($defender_fleet->getAliveShips()) == 0)
             $defender_fleet->deleteRow();
-        Model_BattleLog::getInstance()->save();
+        $bid = Model_BattleLog::getInstance()->save();
         if (count($attacker_fleet->getAliveShips()) == 0)
-            return 'ALost';
+            return [$bid,'ALost'];
         if (count($defender_fleet->getAliveShips()) == 0)
-            return 'AWin';
-        return 'ALoose';
+            return [$bid,'AWin'];
+        return [$bid,'ALoose'];
         
         // TODO: также нужно обработать захват оставшихся в живых но не стреляющих кораблей
         // более того, если присоединение к флоту захваченных кораблей приведет к снижению его скорости -

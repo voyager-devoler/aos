@@ -151,5 +151,23 @@ class actions
     {
         return Model_CurrentPlayer::getInstance()->markMessageAsRead($message['id']);
     }
+    
+    public function getIslandOwner($island)
+    {
+        $owner = dbLink::getDB()->selectRow('select player_id, name from events as e join players as p on e.player_id=p.id where e.type="res_prod" and e.processed=0 and e.obj_id=?d', $island['id']);
+        if (empty($owner))
+            return ['player_id'=>0,'name'=>'nobody'];
+        return $owner;
+    }
+    
+    public function increaseMaxCrews()
+    {
+        return Model_CurrentPlayer::getInstance()->increaseMaxCrews();
+    }
+    
+    public function equipCell($equip_data)
+    {
+        return Model_CurrentPlayer::getInstance();
+    }
 }
 

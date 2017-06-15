@@ -116,6 +116,18 @@ class Model_Settings {
         }
         return false;
     }
+    
+    public function getIncCrewsCosts()
+    {
+        list($cost,$num) = explode(':',$this->increase_crew_limit);
+        return $cost;
+    }
+    
+    public function getIncCrewsNum()
+    {
+        list($cost,$num) = explode(':',$this->increase_crew_limit);
+        return $num;
+    }
 }
 ?>
 

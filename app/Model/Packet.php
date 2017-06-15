@@ -81,9 +81,14 @@ class Model_Packet
                 unset ($events[$id]['params']);
             }
             $response['events'] = $events;
-            $response['messages'] = dbLink::getDB()->select('select id, time, text from messages where player_id = ?d and read = 0', Model_CurrentPlayer::getInstance()->id);
+            $response['messages'] = dbLink::getDB()->select('select id, time, text, position, battle_id from messages where player_id = ?d and `read` = 0', Model_CurrentPlayer::getInstance()->id);
         }
         catch (InsufficientResourceException $e)
+        {
+            $response[$command]['response'] = $e->getMessage();
+            $response[$command]['status'] = 'error';
+        }
+        catch (ClientNotFatalException $e)
         {
             $response[$command]['response'] = $e->getMessage();
             $response[$command]['status'] = 'error';
